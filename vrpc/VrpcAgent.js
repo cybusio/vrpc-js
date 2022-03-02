@@ -27,7 +27,7 @@ class VrpcAgent extends EventEmitter {
    *
    * @example const agent = VrpcAgent.fromCommandline()
    */
-  static fromCommandline ({
+  static fromCommandline({
     domain,
     agent,
     token,
@@ -106,7 +106,7 @@ class VrpcAgent extends EventEmitter {
    *   agent: 'myAgent'
    * })
    */
-  constructor ({
+  constructor({
     username,
     password,
     token,
@@ -128,10 +128,9 @@ class VrpcAgent extends EventEmitter {
     this._broker = broker
     this._qos = bestEffort ? 0 : 1
     this._version = version
-    this._isReconnect = false
     if (log === 'console') {
       this._log = console
-      this._log.debug = () => {}
+      this._log.debug = () => { }
     } else {
       this._log = log
     }
@@ -162,12 +161,12 @@ class VrpcAgent extends EventEmitter {
    * @return {Promise} Resolves once connected or explicitly ended, never
    * rejects
    */
-  async serve (mqttClientId = null) {
+  async serve(mqttClientId = null) {
     const md5 = crypto
       .createHash('md5')
       .update(this._domain + this._agent)
       .digest('hex')
-      .substr(0, 18)
+      .substring(0, 20)
     let username = this._username
     let password = this._password
     if (this._token) {
@@ -192,12 +191,7 @@ class VrpcAgent extends EventEmitter {
     this._log.info(`Agent  : ${this._agent}`)
     this._log.info(`Broker : ${this._broker}`)
     this._log.info('Connecting to MQTT server...')
-    const wasEnded = await this._clearPersistedSession()
-    if (wasEnded) return
-    this._client = mqtt.connect(this._broker, {
-      ...this._options,
-      clean: false
-    })
+    this._client = mqtt.connect(this._broker, this._options)
     this._client.on('connect', this._handleConnect.bind(this))
     this._client.on('reconnect', this._handleReconnect.bind(this))
     this._client.on('error', this._handleError.bind(this))
@@ -215,7 +209,7 @@ class VrpcAgent extends EventEmitter {
    * @param {Boolean} [unregister=false] If true, fully un-registers agent from broker
    * @returns {Promise} Resolves when disconnected and ended
    */
-  async end ({ unregister = false } = {}) {
+  async end({ unregister = false } = {}) {
     try {
       if (!this._client || !this._client.connected) {
         this.emit('end')
@@ -236,13 +230,12 @@ class VrpcAgent extends EventEmitter {
         }
       }
       await new Promise(resolve => this._client.end(false, {}, resolve))
-      await this._clearPersistedSession()
     } catch (err) {
       this._log.error(err, `Problem during disconnecting agent: ${err.message}`)
     }
   }
 
-  static _generateAgentName () {
+  static _generateAgentName() {
     const { username } = os.userInfo()
     const pathId = crypto
       .createHash('md5')
@@ -252,7 +245,7 @@ class VrpcAgent extends EventEmitter {
     return `${username}-${pathId}@${os.hostname()}-${os.platform()}-js`
   }
 
-  _validateDomain (domain) {
+  _validateDomain(domain) {
     if (!domain) throw new Error('The domain must be specified')
     if (domain.match(/[+/#*]/)) {
       throw new Error(
@@ -261,7 +254,7 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _validateAgent (agent) {
+  _validateAgent(agent) {
     if (!agent) throw new Error('The agent must be specified')
     if (agent.match(/[+/#*]/)) {
       throw new Error(
@@ -270,7 +263,7 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _createAgentInfoPayload ({ status }) {
+  _createAgentInfoPayload({ status }) {
     return JSON.stringify({
       status,
       hostname: os.hostname(),
@@ -278,28 +271,7 @@ class VrpcAgent extends EventEmitter {
     })
   }
 
-  /**
-   * @return {Boolean} true if `agent.end()` was explicitly called
-   */
-  async _clearPersistedSession () {
-    // Clear potentially existing persisted sessions
-    const client = mqtt.connect(this._broker, { ...this._options, clean: true })
-    client.on('error', err => this.emit('error', err))
-    client.on('offline', () => this.emit('offline'))
-    client.on('reconnect', () => this.emit('reconnect'))
-    return new Promise(resolve => {
-      client.on('connect', () => {
-        client.end(false, {}, () => resolve(false))
-      })
-      // Will be triggered if the user called 'agent.end()'
-      this.once('end', () => {
-        client.end()
-        resolve(true)
-      })
-    })
-  }
-
-  _mqttPublish (topic, message, options) {
+  _mqttPublish(topic, message, options) {
     this._client.publish(
       topic,
       message,
@@ -314,7 +286,7 @@ class VrpcAgent extends EventEmitter {
     )
   }
 
-  _mqttSubscribe (topic, options) {
+  _mqttSubscribe(topic, options) {
     this._client.subscribe(
       topic,
       { qos: this._qos, ...options },
@@ -349,7 +321,7 @@ class VrpcAgent extends EventEmitter {
     )
   }
 
-  _mqttUnsubscribe (topic, options) {
+  _mqttUnsubscribe(topic, options) {
     this._client.unsubscribe(topic, options, err => {
       if (err) {
         this._log.warn(
@@ -359,37 +331,39 @@ class VrpcAgent extends EventEmitter {
     })
   }
 
-  _getClasses () {
+  _getClasses() {
     return VrpcAdapter.getAvailableClasses()
   }
 
-  _getInstances (className) {
+  _getInstances(className) {
     return VrpcAdapter.getAvailableInstances(className)
   }
 
-  _getMemberFunctions (className) {
+  _getMemberFunctions(className) {
     return VrpcAdapter.getAvailableMemberFunctions(className)
   }
 
-  _getStaticFunctions (className) {
+  _getStaticFunctions(className) {
     return VrpcAdapter.getAvailableStaticFunctions(className)
   }
 
-  _getMetaData (className) {
+  _getMetaData(className) {
     return VrpcAdapter.getAvailableMetaData(className)
   }
 
-  async _ensureConnected () {
+  async _ensureConnected() {
     return new Promise(resolve => {
       if (this._client.connected) {
         resolve()
       } else {
         this._client.once('connect', resolve)
+        // Will be triggered if the user called 'agent.end()'
+        this.once('end', resolve)
       }
     })
   }
 
-  _handleVrpcCallback (jsonString, jsonObject) {
+  _handleVrpcCallback(jsonString, jsonObject) {
     const { sender } = jsonObject
     try {
       this._log.debug(
@@ -405,18 +379,8 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _handleConnect () {
+  _handleConnect() {
     this._log.info('[OK]')
-    if (this._isReconnect) {
-      this._publishAgentInfoMessage()
-      const classes = this._getClasses()
-      classes.forEach(className => {
-        this._publishClassInfoMessage(className)
-      })
-      this.emit('connect')
-      this._isReconnect = false
-      return
-    }
     try {
       const topics = this._generateTopics()
       if (topics.length > 0) this._mqttSubscribe(topics)
@@ -444,7 +408,7 @@ class VrpcAgent extends EventEmitter {
     this.emit('connect')
   }
 
-  _publishAgentInfoMessage () {
+  _publishAgentInfoMessage() {
     this._mqttPublish(
       `${this._baseTopic}/__agentInfo__`,
       this._createAgentInfoPayload({ status: 'online' }),
@@ -452,7 +416,7 @@ class VrpcAgent extends EventEmitter {
     )
   }
 
-  _publishClassInfoMessage (className) {
+  _publishClassInfoMessage(className) {
     const json = {
       className: className,
       instances: this._getInstances(className),
@@ -474,7 +438,7 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _generateTopics () {
+  _generateTopics() {
     const topics = []
     const classes = this._getClasses()
     if (classes.length > 0) {
@@ -491,7 +455,7 @@ class VrpcAgent extends EventEmitter {
     return topics
   }
 
-  _handleMessage (topic, data) {
+  _handleMessage(topic, data) {
     try {
       const json = JSON.parse(data.toString())
       this._log.debug(`Message arrived with topic: ${topic} and payload:`, json)
@@ -582,7 +546,7 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _handleClientInfoMessage (topic, json) {
+  _handleClientInfoMessage(topic, json) {
     // Client went offline
     const clientId = topic.slice(0, -9)
     if (json.status === 'offline') {
@@ -603,7 +567,7 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _registerUnnamedInstance (instanceId, clientId) {
+  _registerUnnamedInstance(instanceId, clientId) {
     const entry = this._unnamedInstances.get(clientId)
     if (entry) {
       // already seen
@@ -618,7 +582,7 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _registerNamedInstance (instanceId, clientId) {
+  _registerNamedInstance(instanceId, clientId) {
     const entry = this._namedInstances.get(clientId)
     if (entry) {
       // already seen
@@ -633,14 +597,14 @@ class VrpcAgent extends EventEmitter {
     }
   }
 
-  _hasNamedInstance (instanceId) {
+  _hasNamedInstance(instanceId) {
     for (const [, instances] of this._namedInstances) {
       if (instances.has(instanceId)) return true
     }
     return false
   }
 
-  _unregisterInstance (instanceId, clientId) {
+  _unregisterInstance(instanceId, clientId) {
     const entryUnnamed = this._unnamedInstances.get(clientId)
     if (entryUnnamed && entryUnnamed.has(instanceId)) {
       entryUnnamed.delete(instanceId)
@@ -672,37 +636,36 @@ class VrpcAgent extends EventEmitter {
     return true
   }
 
-  _subscribeToMethodsOfNewInstance (className, instance) {
+  _subscribeToMethodsOfNewInstance(className, instance) {
     const topic = `${this._baseTopic}/${className}/${instance}/+`
     this._mqttSubscribe(topic)
     this._log.debug(`Subscribed to new topic after instantiation: ${topic}`)
   }
 
-  _unsubscribeMethodsOfDeletedInstance (className, instance) {
+  _unsubscribeMethodsOfDeletedInstance(className, instance) {
     const topic = `${this._baseTopic}/${className}/${instance}/+`
     this._mqttUnsubscribe(topic)
     this._log.debug(`Unsubscribed from topic after deletion: ${topic}`)
   }
 
-  _handleReconnect () {
-    this._isReconnect = true
+  _handleReconnect() {
     this._log.warn(`Reconnecting to ${this._broker}`)
     this.emit('reconnect')
   }
 
-  _handleError (err) {
+  _handleError(err) {
     this.emit('error', err)
   }
 
-  _handleClose () {
+  _handleClose() {
     this.emit('close')
   }
 
-  _handleOffline () {
+  _handleOffline() {
     this.emit('offline')
   }
 
-  _handleEnd () {
+  _handleEnd() {
     this.emit('end')
   }
 }

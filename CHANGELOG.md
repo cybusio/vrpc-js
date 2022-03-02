@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Changed
+
+- changed agent to always run connect with clean session
+
+### Fixed
+
+- agent simplification should fix subscription issues when broker gets restarted
+
 ## [2.6.0] - 12 Jul 2021
 
 ### Added
@@ -222,7 +232,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issues with `VrpcRemote::getInstance` ignoring defaults or throwing wrong
   exceptions [Node.js]
 
-
 ### Added
 
 - Initial example code for a minimal Todos Application using react-vrpc
@@ -376,7 +385,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - proper waiting until all INFO messages arrived
 - automatic un-subscription of dead-client events
 
-
 ## [2.1.0-alpha.0] - 11 Nov 2019
 
 ### Added
@@ -463,7 +471,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Currently the validity of the server certificate will be trusted
 - Removed the need of automatically building native add-on during vrpc installation
 
-
 ## [2.0.0-alpha.7] - 01 Apr 2019
 
 ### Fixed
@@ -512,7 +519,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Adapter and Proxy can now use username and password for MQTT authentication
 - ClientIDs are not longer random generated but explicitly set
-- Added __static__ keyword to wire protocol as placeholder for the instance
+- Added **static** keyword to wire protocol as placeholder for the instance
   position in case of static function
 - Updated README to reflect latest documentation
 
@@ -557,34 +564,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
-  - Re-registration problem for emitter based callbacks resulting in multiplied callbacks
+- Re-registration problem for emitter based callbacks resulting in multiplied callbacks
 
 ## [1.1.6] - 31 Mar 2018
 
-  - Nothing changed, this tag is identical to 1.1.5 for a technical issue during
-    publishing
+- Nothing changed, this tag is identical to 1.1.5 for a technical issue during
+  publishing
 
 ## [1.1.5] - 14 Jun 2018
 
 ### Changed
 
-  - Increased maximum number of inflight ("open") callbacks
-  - Updated dependent packages
+- Increased maximum number of inflight ("open") callbacks
+- Updated dependent packages
 
 ## [1.1.4] - 04 Jun 2018
 
 ### Added
 
-  - Low-level addon tests
+- Low-level addon tests
 
 ### Changed
 
-  - vrpc's callCpp function to throw runtime exception in case of issues
-  - DRYed addon.cpp, improved string conversions and exception text
+- vrpc's callCpp function to throw runtime exception in case of issues
+- DRYed addon.cpp, improved string conversions and exception text
 
 ### Fixed
 
-  - Dev-Ops issue if installing twice (`cpp` soft-link is now forced)
+- Dev-Ops issue if installing twice (`cpp` soft-link is now forced)
 
 ## [1.1.3] - 01 Jun 2018
 
@@ -618,7 +625,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - This CHANGELOG.md file
 - pandoc generated REAMDE.rst file
 
-
 ### Changed
 
 - Renamed source folder `cpp` into `vrpc`, needed to please python's setup tools
@@ -636,7 +642,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Python proxy constructor to be callable with variadic arguments
 - Syntactic problems in `REAMDE.md` leading to mistakes in auto rst translation
 
-
 ## [1.0.2] - 16 Mar 2018
 
 ### Changed
@@ -647,8 +652,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Unnecessary npm-dependency `shortid`
 
-
-
 ## [1.0.1] - 14 Mar 2018
 
 ### Added
@@ -658,8 +661,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - Typo and missing brace in `README.md`
-
-
 
 ## [1.0.0] - 14 Mar 2018
 
