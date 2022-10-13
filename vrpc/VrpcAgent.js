@@ -99,6 +99,11 @@ class VrpcAgent extends EventEmitter {
    * @param {Object} [obj.log=console] Log object (must support debug, info, warn, and error level)
    * @param {String} [obj.bestEffort=false] If true, message will be sent with best effort, i.e. no caching if offline
    * @param {String} [obj.version=''] The (user-defined) version of this agent
+   * @param {String} [obj.protocol=''] Protocol to use
+   * @param {String} [obj.ca=undefined] Certificate of the CA
+   * @param {String} [obj.key=undefined] Client key
+   * @param {String} [obj.cert=undefined] Client certificate
+   * @param {String} [obj.rejectUnauthorized=false] If true, then the server certificate will be verified
    *
    * @example
    * const agent = new Agent({
@@ -115,7 +120,12 @@ class VrpcAgent extends EventEmitter {
     broker = 'mqtts://vrpc.io:8883',
     log = 'console',
     bestEffort = false,
-    version = ''
+    version = '',
+    protocol = '',
+    ca = undefined,
+    key = undefined,
+    cert = undefined,
+    rejectUnauthorized = false
   } = {}) {
     super()
     this._validateDomain(domain)
@@ -128,6 +138,11 @@ class VrpcAgent extends EventEmitter {
     this._broker = broker
     this._qos = bestEffort ? 0 : 1
     this._version = version
+    this._protocol = protocol
+    this._ca = ca
+    this._key = key
+    this._cert = cert
+    this._rejectUnauthorized = rejectUnauthorized
     if (log === 'console') {
       this._log = console
       this._log.debug = () => { }
@@ -179,7 +194,10 @@ class VrpcAgent extends EventEmitter {
       keepalive: 30,
       connectTimeout: 10 * 1000,
       clientId: mqttClientId || `vrpca${md5}`,
-      rejectUnauthorized: false,
+      rejectUnauthorized: this._rejectUnauthorized,
+      ca: this._ca,
+      key: this._key,
+      cert: this._cert,
       will: {
         topic: `${this._baseTopic}/__agentInfo__`,
         payload: this._createAgentInfoPayload({ status: 'offline' }),
