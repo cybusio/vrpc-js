@@ -76,6 +76,11 @@ class VrpcRemote extends EventEmitter {
    * @param {Number} [options.timeout=6000] Maximum time in ms to wait for a RPC answer
    * @param {Object} [options.log=console] Log object (must support debug, info, warn, and error level)
    * @param {Boolean} [options.bestEffort=false] If true, message will be sent with best effort, i.e. no caching if offline
+   * @param {String} [obj.protocol=''] Protocol to use
+   * @param {String} [obj.ca=undefined] Certificate of the CA
+   * @param {String} [obj.key=undefined] Client key
+   * @param {String} [obj.cert=undefined] Client certificate
+   * @param {String} [obj.rejectUnauthorized=false] If true, then the server certificate will be verified
    * @example
    * const client = new VrpcRemote({
    *   domain: 'public.vrpc',
@@ -91,7 +96,12 @@ class VrpcRemote extends EventEmitter {
     broker = 'mqtts://vrpc.io:8883',
     timeout = 6 * 1000,
     log = 'console',
-    bestEffort = false
+    bestEffort = false,
+    protocol = '',
+    ca = undefined,
+    key = undefined,
+    cert = undefined,
+    rejectUnauthorized = false
   } = {}) {
     super()
     // domain sanity check
@@ -115,6 +125,11 @@ class VrpcRemote extends EventEmitter {
     this._broker = broker
     this._timeout = timeout
     this._qos = this._qos = bestEffort ? 0 : 1
+    this._protocol = protocol
+    this._ca = ca
+    this._key = key
+    this._cert = cert
+    this._rejectUnauthorized = rejectUnauthorized
 
     this._instance = crypto.randomBytes(2).toString('hex')
     this._mqttClientId = this._createMqttClientId()
@@ -162,7 +177,10 @@ class VrpcRemote extends EventEmitter {
       clean: true,
       keepalive: 30,
       clientId: this._mqttClientId,
-      rejectUnauthorized: false,
+      rejectUnauthorized: this._rejectUnauthorized,
+      ca: this._ca,
+      key: this._key,
+      cert: this._cert,
       will: {
         topic: `${this._vrpcClientId}/__clientInfo__`,
         payload: JSON.stringify({ status: 'offline' })
