@@ -506,6 +506,15 @@ class VrpcAdapter {
     }
   }
 
+  static sanitizeEventListenerReturnValues (ret) {
+    return ret &&
+      typeof ret === 'object' &&
+      ret._events !== undefined &&
+      ret._eventsCount !== undefined
+      ? true
+      : ret
+  }
+
   static _handleCallAll (json) {
     const { context, method, data } = json
     try {
@@ -518,6 +527,7 @@ class VrpcAdapter {
           const wrappedArgs = VrpcAdapter._wrapArguments(json, id)
           const funcName = wrappedArgs[0]
           v = instance[funcName].apply(instance, wrappedArgs.slice(1))
+          v = VrpcAdapter.sanitizeEventListenerReturnValues(v)
         } catch (err) {
           e = err
         }
@@ -569,7 +579,8 @@ class VrpcAdapter {
       const { instance } = entry
       if (VrpcAdapter._isFunction(instance[method])) {
         try {
-          const ret = instance[method].apply(instance, wrappedArgs)
+          let ret = instance[method].apply(instance, wrappedArgs)
+          ret = VrpcAdapter.sanitizeEventListenerReturnValues(ret)
           // check if function returns promise
           if (VrpcAdapter._isPromise(ret)) {
             this._handlePromise(json, method, ret)
