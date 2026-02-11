@@ -54,7 +54,7 @@ SOFTWARE.
 namespace vrpc_bindings {
 
 using v8::Context;
-using v8::CopyablePersistentTraits;
+using v8::Global;
 using v8::Exception;
 using v8::Function;
 using v8::FunctionCallbackInfo;
